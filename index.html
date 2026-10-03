@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Pehli | Know what you can safely spend</title>
+<meta name="description" content="Pehli is a free two-minute Payday Plan. Enter your take-home pay and what is already committed, and get your Safe-to-Spend per week and per day. No sign-up, no bank login.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #06050A;
+    --ink: #FFFFFF;
+    --soft: rgba(255,255,255,.66);
+    --faint: rgba(255,255,255,.42);
+    --hair: rgba(255,255,255,.10);
+    --glass: rgba(255,255,255,.045);
+    --red: #E5322B;
+    --lime: #9BE23A;
+    --orange: #F26A1B;
+    --blue: #4FA3FF;
+    --violet: #7B61FF;
+    --r: 30px;
+    --font: "Geist", "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: var(--font); font-size: 17px; line-height: 1.5; font-weight: 400;
+    -webkit-font-smoothing: antialiased; overflow-x: hidden;
+  }
+  /* Ambient light: violet from the left, red from the right */
+  body::before {
+    content: ""; position: fixed; inset: -20vmax; z-index: -1; pointer-events: none;
+    background:
+      radial-gradient(38vmax 34vmax at 78% 22%, rgba(229,50,43,.62), transparent 68%),
+      radial-gradient(30vmax 30vmax at 92% 78%, rgba(190,28,34,.50), transparent 70%),
+      radial-gradient(34vmax 30vmax at 10% 62%, rgba(74,36,170,.42), transparent 70%),
+      radial-gradient(26vmax 22vmax at 34% 6%, rgba(56,30,140,.36), transparent 70%);
+    filter: blur(40px);
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 22px; }
+  h1, h2, h3 { margin: 0; font-weight: 500; letter-spacing: -0.035em; line-height: 1.04; }
+  h1 { font-size: clamp(2.7rem, 6.6vw, 5rem); max-width: 12ch; }
+  h2 { font-size: clamp(2rem, 4.4vw, 3.2rem); max-width: 18ch; }
+  h3 { font-size: 1.12rem; letter-spacing: -0.015em; line-height: 1.25; }
+  p { margin: 0; max-width: 58ch; }
+  a { color: inherit; }
+  .num { font-variant-numeric: tabular-nums; letter-spacing: -0.04em; font-weight: 500; line-height: 1; }
+  :focus-visible { outline: 2px solid #fff; outline-offset: 3px; border-radius: 8px; }
+
+  .pill {
+    display: inline-flex; align-items: center; justify-content: center; cursor: pointer; border: 0;
+    background: #fff; color: #08080c; font: 500 1rem var(--font); letter-spacing: -0.01em;
+    padding: 15px 28px; border-radius: 999px; text-decoration: none;
+  }
+  .pill:hover { background: #e9e9ee; }
+  .pill[disabled] { opacity: .6; cursor: wait; }
+  .pill.ghost { background: rgba(255,255,255,.08); color: #fff; border: 1px solid var(--hair); padding: 10px 20px; font-size: .95rem; backdrop-filter: blur(12px); }
+  .pill.ghost:hover { background: rgba(255,255,255,.14); }
+
+  header.top { display: flex; justify-content: space-between; align-items: center; padding: 24px 0; }
+  .brand { font-size: 1.55rem; font-weight: 600; letter-spacing: -0.05em; text-decoration: none; }
+  .brand i { font-style: normal; color: var(--red); }
+
+  /* Cards */
+  .card {
+    position: relative; border-radius: var(--r); padding: 26px; overflow: hidden;
+    border: 1px solid var(--hair); background: var(--glass);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 30px 60px -30px rgba(0,0,0,.8);
+  }
+  .card > * { position: relative; }
+  .card .k { color: var(--soft); font-size: .95rem; }
+  .card .cap { color: var(--soft); font-size: .92rem; margin-top: 14px; max-width: 34ch; }
+  .t-blue   { background: radial-gradient(120% 90% at 50% 40%, #04070d 30%, #0a3157 100%); }
+  .t-teal   { background: radial-gradient(130% 100% at 50% 55%, #071312 25%, #0d5a50 100%); }
+  .t-orange { background: radial-gradient(120% 90% at 40% 30%, #120805 20%, #b94a14 100%); }
+  .t-green  { background: radial-gradient(120% 90% at 50% 55%, #060a04 20%, #3f7412 100%); }
+  .t-violet { background: radial-gradient(130% 100% at 50% 50%, #05050b 30%, #2c1c6e 100%); }
+  .t-red    { background: radial-gradient(130% 100% at 50% 60%, #120405 25%, #6d1116 100%); }
+  .dots { position: absolute; top: 22px; right: 22px; width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(255,255,255,.25); display: grid; place-items: center; color: var(--soft); font-size: 1rem; line-height: 0; letter-spacing: 1px; }
+
+  /* Hero */
+  .hero { display: grid; gap: 48px; grid-template-columns: 1fr; align-items: center; padding: 30px 0 80px; }
+  @media (min-width: 940px) { .hero { grid-template-columns: 1.1fr .9fr; padding: 50px 0 110px; } }
+  .hero .lede { font-size: 1.2rem; color: var(--soft); margin: 26px 0 32px; max-width: 42ch; font-weight: 300; }
+  .hero .fine { color: var(--faint); font-size: .95rem; margin-top: 18px; }
+
+  .phone {
+    width: min(330px, 86vw); margin: 0 auto; border-radius: 52px; padding: 14px;
+    background: #050507; border: 2px solid #26262d;
+    box-shadow: 0 0 0 6px #0b0b0f, 0 60px 120px -30px rgba(0,0,0,.9), 0 0 140px -20px rgba(229,50,43,.35);
+  }
+  .phone .screen { border-radius: 40px; background: #08080b; padding: 16px 16px 14px; }
+  .phone .status { display: flex; justify-content: space-between; align-items: center; font-size: .82rem; font-weight: 600; padding: 2px 10px 0; }
+  .phone .island { width: 86px; height: 24px; border-radius: 20px; background: #000; }
+  .phone .title { padding: 16px 6px 14px; }
+  .phone .title small { display: block; color: var(--soft); font-size: .8rem; }
+  .phone .title b { font-weight: 500; font-size: 1.15rem; letter-spacing: -0.02em; }
+  .phone .card { border-radius: 22px; padding: 18px; margin-bottom: 12px; }
+  .phone .row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .phone .big { font-size: 2.4rem; margin-top: 6px; }
+  .ring { width: 74px; height: 74px; border-radius: 50%; flex: none;
+    background: conic-gradient(from 200deg, #fff 0 8%, var(--blue) 8% 62%, rgba(255,255,255,.14) 62% 100%);
+    -webkit-mask: radial-gradient(circle, transparent 57%, #000 59%); mask: radial-gradient(circle, transparent 57%, #000 59%); }
+  .inner { background: rgba(255,255,255,.06); border-radius: 16px; padding: 18px 12px 14px; text-align: center; margin-top: 12px; }
+  .inner .lab { font-size: .68rem; letter-spacing: .08em; color: var(--soft); }
+  .ruler { height: 34px; margin: 14px 4px 6px; position: relative;
+    background: repeating-linear-gradient(90deg, rgba(255,255,255,.34) 0 1px, transparent 1px 7px);
+    -webkit-mask: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent); mask: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent); }
+  .ruler::after { content: ""; position: absolute; left: 50%; top: -6px; bottom: -6px; width: 2px; background: var(--orange); }
+  .scale { display: flex; justify-content: space-between; font-size: .68rem; color: var(--faint); padding: 0 2px; }
+  .phone .pill { width: 100%; padding: 12px; font-size: .9rem; margin-top: 12px; }
+  .tabs { display: flex; justify-content: space-around; padding: 12px 0 4px; font-size: .7rem; color: var(--faint); }
+  .tabs span:first-child { color: #fff; }
+
+  section { padding: 70px 0; }
+  .lead { color: var(--soft); font-size: 1.1rem; margin-top: 18px; font-weight: 300; }
+
+  /* People */
+  .people { display: grid; gap: 18px; grid-template-columns: 1fr; margin-top: 44px; }
+  @media (min-width: 760px) { .people { grid-template-columns: repeat(3, 1fr); gap: 22px; } .people figure:nth-child(2) { margin-top: 56px; } }
+  .people figure { margin: 0; position: relative; border-radius: var(--r); overflow: hidden; aspect-ratio: 4 / 5; border: 1px solid var(--hair); background: #0b0b10; }
+  .people figure:nth-child(1) { background: radial-gradient(70% 60% at 30% 30%, #b94a14, transparent 70%), radial-gradient(60% 60% at 80% 70%, #6d1116, transparent 70%), #0b0b10; }
+  .people figure:nth-child(2) { background: radial-gradient(70% 60% at 70% 30%, #0d5a50, transparent 70%), radial-gradient(60% 60% at 20% 80%, #2c1c6e, transparent 70%), #0b0b10; }
+  .people figure:nth-child(3) { background: radial-gradient(70% 60% at 40% 35%, #0a3157, transparent 70%), radial-gradient(60% 60% at 80% 80%, #3f7412, transparent 72%), #0b0b10; }
+  /* A photo, if one is uploaded, covers the drawn scene underneath */
+  .people img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; z-index: 1; }
+  .people figure::after { content: ""; position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, transparent 50%, rgba(4,4,8,.8) 100%); pointer-events: none; }
+  .people figcaption { position: absolute; left: 14px; right: 14px; bottom: 14px; z-index: 2; padding: 16px 18px; border-radius: 20px;
+    background: rgba(18,18,24,.55); border: 1px solid var(--hair); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
+  .people figcaption b { display: block; font-weight: 500; font-size: 1.08rem; letter-spacing: -0.02em; }
+  .people figcaption span { color: var(--soft); font-size: .9rem; }
+
+  .art { position: absolute; inset: 0 0 30% 0; display: grid; place-items: center; padding: 22px; }
+  .glass { background: rgba(255,255,255,.09); border: 1px solid rgba(255,255,255,.16); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.14), 0 24px 50px -20px rgba(0,0,0,.7); }
+  .chip { display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px; border-radius: 999px; font-size: .86rem; white-space: nowrap; background: rgba(10,10,14,.72); border: 1px solid rgba(255,255,255,.16); }
+  .chip::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--lime); }
+
+  /* 1: salary day */
+  .a-day { position: relative; width: min(64%, 210px); aspect-ratio: 1 / 1.08; }
+  .a-day .tile { position: absolute; inset: 0; border-radius: 30px; padding: 18px 20px; display: flex; flex-direction: column; justify-content: space-between; }
+  .a-day .tile small { color: var(--soft); font-size: .85rem; }
+  .a-day .tile .num { font-size: clamp(5.5rem, 11vw, 8rem); font-weight: 300; }
+  .a-day .tile sup { font-size: .22em; letter-spacing: 0; font-weight: 400; vertical-align: top; position: relative; top: .9em; margin-left: 4px; color: var(--soft); }
+  .a-day .timer { position: absolute; right: -22%; top: -14%; width: 46%; aspect-ratio: 1; border-radius: 50%; display: grid; place-items: center; font-size: .82rem; text-align: center; line-height: 1.15;
+    background: conic-gradient(#fff 0 68%, rgba(255,255,255,.16) 68% 100%); }
+  .a-day .timer span { width: 82%; aspect-ratio: 1; border-radius: 50%; background: #1b0d08; display: grid; place-items: center; }
+  .a-day .timer b { display: block; font-weight: 500; font-size: 1.25rem; letter-spacing: -0.03em; }
+  .a-day .chip { position: absolute; left: -14%; bottom: -9%; }
+
+  /* 2: money sent home */
+  .a-home { position: relative; width: 100%; max-width: 300px; }
+  .a-home svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .a-home .node { position: absolute; top: 44%; width: 30%; aspect-ratio: 1; border-radius: 50%; display: grid; place-items: center; text-align: center; font-size: .8rem; color: var(--soft); line-height: 1.2; }
+  .a-home .node svg { width: 44%; margin: 0 auto 2px; }
+  .a-home .you { left: 0; } .a-home .home { right: 0; }
+  .a-home .chip { position: absolute; left: 50%; top: 4%; transform: translateX(-50%); font-size: 1rem; padding: 10px 16px; }
+  .a-home .chip::before { background: #35d6b6; }
+  .a-home .first { position: absolute; left: 50%; bottom: -6%; transform: translateX(-50%); color: var(--soft); font-size: .8rem; white-space: nowrap; }
+
+  /* 3: the 28th */
+  .a-month { width: min(66%, 210px); border-radius: 24px; padding: 14px 16px; }
+  .a-month .hd { display: flex; justify-content: space-between; font-size: .74rem; color: var(--soft); margin-bottom: 10px; white-space: nowrap; }
+  .a-month .grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 7px; }
+  .a-month .grid i { aspect-ratio: 1; border-radius: 50%; background: rgba(255,255,255,.3); }
+  .a-month .grid i.today { background: #fff; box-shadow: 0 0 0 5px rgba(255,255,255,.2), 0 0 26px rgba(120,190,255,.9); }
+  .a-month .grid i.left { background: transparent; border: 1.5px solid var(--lime); }
+  .a-month .num { font-size: 1.35rem; margin-top: 12px; }
+  .a-month .k { font-size: .74rem; color: var(--soft); margin-top: 3px; }
+
+  /* Bento: how Pehli helps */
+  .bento { display: grid; gap: 18px; grid-template-columns: 1fr; margin-top: 44px; }
+  @media (min-width: 620px) { .bento { grid-template-columns: repeat(2, 1fr); } .b-pay, .b-week, .b-month { grid-column: span 2; } }
+  @media (min-width: 1020px) {
+    .bento { grid-template-columns: repeat(12, 1fr); gap: 20px; }
+    .b-pay { grid-column: span 4; } .b-week { grid-column: span 4; } .b-cuts { grid-column: span 4; grid-row: span 2; }
+    .b-cush { grid-column: span 2; } .b-gauge { grid-column: span 2; } .b-month { grid-column: span 4; }
+  }
+  .b-pay .big { font-size: clamp(2.2rem, 4vw, 2.9rem); margin: 6px 0 18px; }
+  .chips { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .chips div { background: rgba(255,255,255,.08); border-radius: 16px; padding: 10px; min-width: 0; }
+  .chips small { display: block; color: var(--soft); font-size: .76rem; }
+  .chips b { font-weight: 500; font-variant-numeric: tabular-nums; font-size: clamp(.8rem, 3.4vw, .98rem); white-space: nowrap; }
+  .b-week .inner { padding: 26px 14px 18px; }
+  .b-week .big { font-size: clamp(2.8rem, 5vw, 3.6rem); margin-top: 8px; }
+  .b-cush .big { font-size: 2.3rem; margin-top: 54px; }
+  .b-cush .big small, .b-gauge .big small { font-size: .5em; font-weight: 400; margin-right: 4px; letter-spacing: 0; }
+  .b-gauge svg { display: block; width: 100%; height: auto; margin: 8px 0 2px; }
+  .b-gauge .big { font-size: 2.3rem; margin-top: 4px; }
+  .seg { display: grid; grid-template-columns: repeat(30, 1fr); gap: 4px; height: 44px; margin: 20px 0 10px; }
+  .seg i { border-radius: 3px; background: rgba(255,255,255,.5); }
+  .seg i.on { background: var(--red); }
+  .cutlist { list-style: none; padding: 0; margin: 22px 0 0; border-top: 1px solid var(--hair); }
+  .cutlist li { display: grid; grid-template-columns: 22px 1fr auto; gap: 10px; align-items: center; padding: 16px 0; }
+  .cutlist li::before { content: ""; width: 12px; height: 12px; border-radius: 50%; background: var(--red); box-shadow: 0 0 0 5px rgba(229,50,43,.22); }
+  .cutlist small { display: block; color: var(--soft); font-size: .86rem; }
+  .cutlist b { font-weight: 500; font-variant-numeric: tabular-nums; }
+  .b-month .rowlab { display: flex; justify-content: space-between; font-size: .82rem; color: var(--soft); margin: 16px 0 6px; }
+  .days { display: grid; grid-template-columns: repeat(30, 1fr); gap: 3px; height: 54px; align-items: end; }
+  .days i { display: block; border-radius: 3px 3px 0 0; min-height: 2px; background: rgba(255,255,255,.16); }
+  .days.unplanned i.out { background: transparent; border-bottom: 2px solid var(--red); }
+  .days.planned i { background: var(--violet); height: 46% !important; }
+
+  ol.steps { list-style: none; padding: 0; margin: 44px 0 0; display: grid; gap: 18px; grid-template-columns: 1fr; counter-reset: s; }
+  @media (min-width: 760px) { ol.steps { grid-template-columns: repeat(4, 1fr); } }
+  ol.steps li { counter-increment: s; border-top: 1px solid var(--hair); padding-top: 18px; }
+  ol.steps li::before { content: counter(s); display: block; font-size: 2.4rem; font-weight: 300; letter-spacing: -0.04em; color: var(--faint); line-height: 1; margin-bottom: 14px; }
+  ol.steps p { color: var(--soft); font-size: .95rem; margin-top: 6px; }
+
+  /* Planner */
+  .planner { display: grid; gap: 20px; grid-template-columns: 1fr; margin-top: 44px; }
+  @media (min-width: 940px) { .planner { grid-template-columns: 1.1fr .9fr; gap: 24px; align-items: start; } }
+  fieldset { border: 0; padding: 0; margin: 0 0 30px; }
+  legend { font-weight: 500; font-size: 1.15rem; letter-spacing: -0.02em; padding: 0; margin-bottom: 4px; }
+  .hint { color: var(--faint); font-size: .92rem; margin-bottom: 18px; }
+  .field { margin-bottom: 18px; }
+  .field label { display: flex; justify-content: space-between; gap: 12px; font-size: .96rem; color: var(--soft); }
+  .field output { color: #fff; font-weight: 500; font-variant-numeric: tabular-nums; }
+  input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 28px; background: transparent; margin: 2px 0 0; cursor: pointer; }
+  input[type=range]::-webkit-slider-runnable-track { height: 6px; border-radius: 6px; background: rgba(255,255,255,.14); }
+  input[type=range]::-moz-range-track { height: 6px; border-radius: 6px; background: rgba(255,255,255,.14); }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: #fff; margin-top: -8px; box-shadow: 0 2px 10px rgba(0,0,0,.6); }
+  input[type=range]::-moz-range-thumb { width: 22px; height: 22px; border: 0; border-radius: 50%; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,.6); }
+  .inline { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  input[type=number], input[type=text] { font: inherit; color: #fff; background: rgba(255,255,255,.07); border: 1px solid var(--hair); border-radius: 14px; padding: 12px 14px; }
+  input[type=number] { width: 88px; }
+  input[type=text] { width: 100%; margin-top: 8px; }
+  input::placeholder { color: var(--faint); }
+
+  .slip { position: sticky; top: 18px; }
+  .slip h3 small { float: right; font-weight: 400; font-size: .82rem; color: var(--faint); letter-spacing: 0; margin-top: 3px; }
+  .slip table { width: 100%; border-collapse: collapse; margin-top: 16px; font-variant-numeric: tabular-nums; font-size: .98rem; }
+  .slip td { padding: 9px 0; border-bottom: 1px solid var(--hair); color: var(--soft); }
+  .slip td:last-child { text-align: right; color: #fff; white-space: nowrap; }
+  .slip tr.total td { color: #fff; font-weight: 500; border-bottom-color: rgba(255,255,255,.3); }
+  .safe { margin-top: 12px; }
+  .safe .big { font-size: clamp(2.5rem, 6vw, 3.3rem); }
+  .safe .big.neg { font-size: 1.35rem; line-height: 1.25; letter-spacing: -0.02em; color: #ff8d86; }
+  .safe .sub { color: var(--soft); margin-top: 10px; font-size: .95rem; }
+  .gap { margin-top: 10px; font-size: .95rem; color: #fff; }
+  .slip .pill { width: 100%; margin-top: 20px; }
+  .plan-out { margin-top: 20px; padding: 18px; border-radius: 18px; background: rgba(0,0,0,.32); white-space: pre-line; font-size: .97rem; }
+  .plan-out[hidden] { display: none; }
+  .plan-out strong { display: block; font-weight: 500; margin-bottom: 8px; color: var(--soft); font-size: .85rem; }
+  .msg { margin-top: 12px; font-size: .88rem; color: var(--faint); }
+  .msg.err { color: #ff8d86; }
+
+  .live { display: grid; gap: 18px; grid-template-columns: 1fr; margin-top: 40px; }
+  @media (min-width: 700px) { .live { grid-template-columns: 1fr 1fr; } }
+  .live .n { font-size: clamp(3rem, 8vw, 4.6rem); margin-top: 26px; }
+
+  .cols { display: grid; gap: 18px; grid-template-columns: 1fr; }
+  @media (min-width: 860px) { .cols { grid-template-columns: 1fr 1fr; } }
+  ul.plain { list-style: none; padding: 0; margin: 22px 0 0; display: grid; gap: 14px; }
+  ul.plain li { padding-left: 28px; position: relative; color: var(--soft); max-width: 46ch; }
+  ul.plain li::before { content: ""; position: absolute; left: 0; top: .5em; width: 10px; height: 10px; border-radius: 50%; background: var(--red); }
+  ul.plain.yes li::before { background: var(--lime); }
+  .post { white-space: pre-line; color: var(--soft); margin-top: 18px; max-width: 60ch; }
+  .post b { color: #fff; font-weight: 500; font-size: 1.25rem; letter-spacing: -0.02em; }
+
+  footer { padding: 30px 0 60px; color: var(--faint); font-size: .88rem; }
+  footer p + p { margin-top: 8px; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="#">pehli<i>.</i></a>
+    <a class="pill ghost" href="#plan">Make my Payday Plan</a>
+  </header>
+
+  <div class="hero">
+    <div>
+      <h1>Know what you can safely spend, before you spend it.</h1>
+      <p class="lede">Pehli is a free two-minute Payday Plan. Tell it your take-home pay and what is already spoken for, and it gives you one figure to live by until the next salary.</p>
+      <a class="pill" href="#plan">Make my Payday Plan</a>
+      <p class="fine">No sign-up. No bank login. No SMS access.</p>
+    </div>
+
+    <div class="phone" role="img" aria-label="The Pehli app showing a Safe-to-Spend of ₹3,570 this week and ₹510 today">
+      <div class="screen">
+        <div class="status"><span>9:41</span><span class="island"></span><span>100</span></div>
+        <div class="title"><small>October</small><b>Payday Plan</b></div>
+        <div class="card t-blue">
+          <div class="row">
+            <div><div class="k">Safe this week</div><div class="num big">₹3,570</div></div>
+            <div class="ring"></div>
+          </div>
+        </div>
+        <div class="card t-teal">
+          <div class="k">Today</div>
+          <div class="inner">
+            <div class="lab">AMOUNT</div>
+            <div class="num big">₹510</div>
+            <div class="ruler"></div>
+            <div class="scale"><span>₹360</span><span>₹410</span><span>₹460</span><span>₹560</span><span>₹610</span><span>₹660</span></div>
+          </div>
+          <span class="pill" aria-hidden="true">Reset with my balance</span>
+        </div>
+        <div class="tabs"><span>Plan</span><span>Two Cuts</span><span>Reset</span><span>Me</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section>
+  <div class="wrap">
+    <h2>Saving feels better when you can see it.</h2>
+    <p class="lead">Nobody enjoys logging expenses. People enjoy knowing they are fine. Pehli is built for that second feeling.</p>
+    <div class="people">
+      <figure>
+        <div class="art" aria-hidden="true">
+          <div class="a-day">
+            <div class="tile glass"><small>Salary day</small><div class="num">1<sup>st</sup></div></div>
+            <div class="timer"><span><span><b>2:00</b>minutes</span></span></div>
+            <span class="chip">Plan made</span>
+          </div>
+        </div>
+        <img src="happy-1.jpg" alt="A young professional smiling at her phone at a cafe table" loading="lazy" onerror="this.remove()">
+        <figcaption><b>Payday, planned in two minutes</b><span>One figure for the week, before the first swipe.</span></figcaption>
+      </figure>
+      <figure>
+        <div class="art" aria-hidden="true">
+          <div class="a-home">
+            <svg viewBox="0 0 300 190"><path d="M45 128 C 90 20, 210 20, 255 128" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="2" stroke-dasharray="3 9" stroke-linecap="round"/><circle cx="255" cy="128" r="4" fill="#35d6b6"/></svg>
+            <div class="node you glass"><div><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="8.5" r="3.6"/><path d="M4.5 20c1-4 4-5.6 7.5-5.6s6.5 1.6 7.5 5.6"/></svg>You</div></div>
+            <div class="node home glass"><div><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 11.5 12 4l8.5 7.5"/><path d="M6 10v9.5h12V10"/><path d="M10 19.5v-5h4v5"/></svg>Home</div></div>
+            <span class="chip">₹6,000</span>
+            <span class="first">set aside before anything else</span>
+          </div>
+        </div>
+        <img src="happy-2.jpg" alt="A young man laughing on a video call with his parents" loading="lazy" onerror="this.remove()">
+        <figcaption><b>Money sent home, counted first</b><span>Family support is a commitment, not leftover.</span></figcaption>
+      </figure>
+      <figure>
+        <div class="art" aria-hidden="true">
+          <div class="a-month glass">
+            <div class="hd"><span>Month</span><span>Day 28 of 30</span></div>
+            <div class="grid"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="today"></i><i class="left"></i><i class="left"></i></div>
+            <div class="num">₹1,530</div>
+            <div class="k">safe for the last 3 days</div>
+          </div>
+        </div>
+        <img src="happy-3.jpg" alt="Two flatmates sharing dinner and laughing at the end of the month" loading="lazy" onerror="this.remove()">
+        <figcaption><b>Still comfortable on the 28th</b><span>The same salary, spread to the end of the month.</span></figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>How Pehli helps, on one salary.</h2>
+    <p class="lead">Every card below uses the same example: ₹52,000 take-home, 30 days to the next salary.</p>
+
+    <div class="bento">
+      <div class="card t-blue b-pay">
+        <div class="k">Take-home pay</div>
+        <div class="num big">₹52,000</div>
+        <div class="chips">
+          <div><small>Committed</small><b>−₹24,000</b></div>
+          <div><small>Support</small><b>−₹6,000</b></div>
+          <div><small>Future</small><b>−₹5,000</b></div>
+        </div>
+        <p class="cap">Rent, EMIs and bills, money sent home, and what you want left untouched come off first. ₹17,000 is free.</p>
+      </div>
+
+      <div class="card t-teal b-week">
+        <h3>Safe-to-Spend</h3><span class="dots" aria-hidden="true">···</span>
+        <div class="inner">
+          <div class="lab">THIS WEEK</div>
+          <div class="num big">₹3,570</div>
+          <div class="ruler"></div>
+          <div class="scale"><span>₹3,270</span><span>₹3,370</span><span>₹3,470</span><span>₹3,670</span><span>₹3,770</span><span>₹3,870</span></div>
+        </div>
+        <p class="cap">One figure to check before you pay, instead of a list to fill in afterwards.</p>
+      </div>
+
+      <div class="card t-red b-cuts">
+        <h3>Two Cuts</h3><span class="dots" aria-hidden="true">···</span>
+        <div class="seg" id="seg" aria-hidden="true"></div>
+        <div class="k">Usual spending <b style="color:#fff;font-weight:500">₹18,000</b> against <b style="color:#fff;font-weight:500">₹15,300</b> safe</div>
+        <ul class="cutlist">
+          <li><div>Food and delivery<small>15% trim</small></div><b>₹1,050</b></li>
+          <li><div>Going out<small>15% trim</small></div><b>₹600</b></li>
+        </ul>
+        <p class="cap">Pehli looks only at your two biggest flexible categories and shows what a small trim adds back. You decide.</p>
+      </div>
+
+      <div class="card t-orange b-cush">
+        <h3>Cushion</h3>
+        <div class="num big"><small>₹</small>1,700</div>
+        <p class="cap">10% held back for surprises.</p>
+      </div>
+
+      <div class="card t-green b-gauge">
+        <h3>Per day</h3>
+        <svg viewBox="0 0 220 70" aria-hidden="true">
+          <path d="M14 62 A 120 120 0 0 1 206 62" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="7" stroke-linecap="round"/>
+          <path d="M14 62 A 120 120 0 0 1 110 20" fill="none" stroke="#9BE23A" stroke-width="7" stroke-linecap="round"/>
+          <circle cx="110" cy="20" r="8" fill="#fff"/>
+        </svg>
+        <div class="k">For 30 days</div>
+        <div class="num big"><small>₹</small>510</div>
+      </div>
+
+      <div class="card t-violet b-month">
+        <h3>The same money, to the 30th</h3>
+        <div class="rowlab"><span>Without a plan</span><span>nothing left after the 20th</span></div>
+        <div class="days unplanned" id="unplanned"></div>
+        <div class="rowlab"><span>With a Payday Plan</span><span>even, every day</span></div>
+        <div class="days planned" id="planned"></div>
+      </div>
+    </div>
+
+    <ol class="steps">
+      <li><h3>Enter your take-home pay</h3><p>The amount that actually lands in your account.</p></li>
+      <li><h3>Set aside what is spoken for</h3><p>Committed costs, family support, and an amount to leave untouched.</p></li>
+      <li><h3>Get your Safe-to-Spend</h3><p>Free money, less a 10% cushion, divided by the days to your next salary.</p></li>
+      <li><h3>See your Two Cuts</h3><p>What a 15% trim in your two biggest flexible categories adds back.</p></li>
+    </ol>
+  </div>
+</section>
+
+<section id="plan">
+  <div class="wrap">
+    <h2>Make your Payday Plan.</h2>
+    <p class="lead">Rough figures are fine. Everything here is your own estimate.</p>
+
+    <form class="planner" id="planner" novalidate>
+      <div class="card">
+        <fieldset>
+          <legend>This month</legend>
+          <p class="hint">Move the sliders, or use the arrow keys for fine steps.</p>
+          <div class="field"><label for="take_home">Take-home pay <output id="o_take_home"></output></label>
+            <input type="range" id="take_home" min="15000" max="200000" step="1000" value="52000"></div>
+          <div class="field"><label for="committed">Committed: rent, EMIs, bills, commute <output id="o_committed"></output></label>
+            <input type="range" id="committed" min="0" max="150000" step="500" value="24000"></div>
+          <div class="field"><label for="support">Support: money sent to family <output id="o_support"></output></label>
+            <input type="range" id="support" min="0" max="60000" step="500" value="6000"></div>
+          <div class="field"><label for="future">Future: amount to leave untouched <output id="o_future"></output></label>
+            <input type="range" id="future" min="0" max="60000" step="500" value="5000"></div>
+          <div class="field inline"><label for="days">Days until next salary</label>
+            <input type="number" id="days" min="1" max="31" value="30" inputmode="numeric"></div>
+        </fieldset>
+
+        <fieldset>
+          <legend>What you usually spend in a month</legend>
+          <p class="hint">These are the flexible categories Two Cuts looks at.</p>
+          <div class="field"><label for="food">Food and delivery <output id="o_food"></output></label>
+            <input type="range" id="food" min="0" max="30000" step="250" value="7000"></div>
+          <div class="field"><label for="going_out">Going out <output id="o_going_out"></output></label>
+            <input type="range" id="going_out" min="0" max="30000" step="250" value="4000"></div>
+          <div class="field"><label for="shopping">Shopping <output id="o_shopping"></output></label>
+            <input type="range" id="shopping" min="0" max="30000" step="250" value="3000"></div>
+          <div class="field"><label for="travel">Cabs and travel <output id="o_travel"></output></label>
+            <input type="range" id="travel" min="0" max="30000" step="250" value="2500"></div>
+          <div class="field"><label for="other">Subscriptions and other <output id="o_other"></output></label>
+            <input type="range" id="other" min="0" max="30000" step="250" value="1500"></div>
+        </fieldset>
+
+        <div class="field" style="margin-bottom:0">
+          <label for="note">Anything unusual this month? (optional)</label>
+          <input type="text" id="note" maxlength="120" placeholder="e.g. a wedding to attend, a trip home">
+        </div>
+      </div>
+
+      <aside class="card t-teal slip" aria-live="polite">
+        <h3>Your Payday Plan <small>your estimate</small></h3>
+        <table>
+          <tr><td>Take-home pay</td><td id="s_take"></td></tr>
+          <tr><td>Committed</td><td id="s_committed"></td></tr>
+          <tr><td>Support</td><td id="s_support"></td></tr>
+          <tr><td>Future</td><td id="s_future"></td></tr>
+          <tr class="total"><td>Free money</td><td id="s_free"></td></tr>
+          <tr><td>Cushion held back (10%)</td><td id="s_cushion"></td></tr>
+        </table>
+        <div class="inner" style="text-align:left;padding:20px">
+          <div class="safe" style="margin-top:0">
+            <div class="num big" id="s_week"></div>
+            <div class="sub" id="s_day"></div>
+          </div>
+          <p class="gap" id="s_gap"></p>
+        </div>
+        <button class="pill" type="submit" id="go">Make my Payday Plan</button>
+        <div class="plan-out" id="plan_out" hidden></div>
+        <p class="msg" id="msg">Pehli writes your plan with your Two Cuts. Up to 5 plans a day.</p>
+      </aside>
+    </form>
+  </div>
+</section>
+
+<section id="live" hidden>
+  <div class="wrap">
+    <h2>What visitors have planned so far.</h2>
+    <div class="live">
+      <div class="card t-violet"><div class="k">Payday Plans made on this page</div><div class="num n" id="n_plans">0</div></div>
+      <div class="card t-green"><div class="k">Average found by Two Cuts, per month</div><div class="num n" id="n_saving">₹0</div></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap cols">
+    <div class="card">
+      <h3>What Pehli does not do</h3>
+      <ul class="plain">
+        <li>Connect to your bank or read your SMS.</li>
+        <li>Ask you to log expenses.</li>
+        <li>Give investment, tax or legal advice, or recommend any financial product.</li>
+        <li>Store your name, email or phone number.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>What it does</h3>
+      <ul class="plain yes">
+        <li>Turns one salary into a weekly and daily figure you can check before you pay.</li>
+        <li>Treats money sent home as a commitment, not as leftover.</li>
+        <li>Keeps a 10% cushion so one surprise does not break the month.</li>
+        <li>Shows the two flexible categories where a small trim adds the most back.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="card t-red" style="padding:clamp(26px,5vw,56px)">
+      <div class="k">From our launch post</div>
+      <div class="post"><b>Know what you can safely spend before you spend.</b>
+
+₹52,000 take-home
+− ₹24,000 committed
+− ₹6,000 family support
+− ₹5,000 kept untouched
+= ₹17,000 free money
+
+After a 10% cushion, ₹15,300 remains. With 30 days until the next salary, that’s ₹510 a day or ₹3,570 a week to work with.
+
+No expense logging. No investment, tax or legal advice. Just a simple plan built around your own numbers.
+
+What usually runs out first for you: money, or the month?</div>
+      <p style="margin-top:30px"><a class="pill" href="#plan">Make my Payday Plan</a></p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>Pehli is a student project built for a course on generative AI. It is not a registered financial adviser. Photographs on this page are AI-generated illustrations, not real customers.</p>
+    <p>All figures are your own estimates. Plans are written by an AI model (Google Gemini) from numbers Pehli calculates; the figures you enter are stored without your name or contact details so the page can show the totals above.</p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var rupee = function (n) { return (n < 0 ? "−₹" : "₹") + Math.abs(n).toLocaleString("en-IN"); };
+  var $ = function (id) { return document.getElementById(id); };
+
+  // Hero illustration: thirty day-bars.
+  var unplanned = [100,96,92,90,86,80,78,74,70,64,60,55,50,44,38,30,24,16,9,4];
+  var a = "", b = "";
+  for (var d = 0; d < 30; d++) {
+    a += d < 20 ? '<i style="height:' + unplanned[d] + '%"></i>' : '<i class="out"></i>';
+    b += '<i style="height:46%"></i>';
+  }
+  $("unplanned").innerHTML = a; $("planned").innerHTML = b;
+  var sg = ""; for (var k = 0; k < 30; k++) sg += k < 25 ? "<i></i>" : '<i class="on"></i>';
+  $("seg").innerHTML = sg;
+
+  var MAIN = ["take_home", "committed", "support", "future"];
+  var FLEX = { food: "Food and delivery", going_out: "Going out", shopping: "Shopping", travel: "Cabs and travel", other: "Subscriptions and other" };
+
+  function read() {
+    var v = { flex: {} };
+    MAIN.forEach(function (k) { v[k] = Number($(k).value); });
+    Object.keys(FLEX).forEach(function (k) { v.flex[k] = Number($(k).value); });
+    v.days = Math.min(31, Math.max(1, Math.round(Number($("days").value) || 30)));
+    return v;
+  }
+
+  // Same arithmetic as the server; the server recalculates and is the source of truth.
+  function calc(v) {
+    var free = v.take_home - v.committed - v.support - v.future;
+    var cushion = free > 0 ? Math.round(free * 0.1) : 0;
+    var monthly = free > 0 ? free - cushion : 0;
+    var perDay = Math.floor(monthly / v.days);
+    var usual = Object.keys(v.flex).reduce(function (s, k) { return s + v.flex[k]; }, 0);
+    return { free: free, cushion: cushion, monthly: monthly, perDay: perDay, perWeek: perDay * 7, usual: usual, gap: usual - monthly };
+  }
+
+  function render() {
+    var v = read(), c = calc(v);
+    MAIN.concat(Object.keys(FLEX)).forEach(function (k) {
+      $("o_" + k).textContent = rupee(MAIN.indexOf(k) > -1 ? v[k] : v.flex[k]);
+    });
+    $("s_take").textContent = rupee(v.take_home);
+    $("s_committed").textContent = rupee(-v.committed);
+    $("s_support").textContent = rupee(-v.support);
+    $("s_future").textContent = rupee(-v.future);
+    $("s_free").textContent = rupee(c.free);
+    $("s_cushion").textContent = rupee(-c.cushion);
+    if (c.free > 0) {
+      $("s_week").className = "big";
+      $("s_week").textContent = rupee(c.perWeek) + " a week";
+      $("s_day").textContent = "Safe-to-Spend: " + rupee(c.perDay) + " a day for " + v.days + " days";
+      $("s_gap").textContent = c.gap > 0
+        ? "Your usual spending is " + rupee(c.gap) + " a month above this."
+        : "Your usual spending is " + rupee(-c.gap).replace("−", "") + " a month below this.";
+    } else {
+      $("s_week").className = "big neg";
+      $("s_week").textContent = "Commitments are higher than take-home pay";
+      $("s_day").textContent = "There is no Safe-to-Spend this month on these figures.";
+      $("s_gap").textContent = "";
+    }
+  }
+
+  document.querySelectorAll("#planner input").forEach(function (el) { el.addEventListener("input", render); });
+  render();
+
+  function visitorId() {
+    var id = null;
+    try { id = localStorage.getItem("pehli_visitor"); } catch (e) {}
+    if (!id) {
+      id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : "v-" + Date.now() + "-" + Math.random().toString(36).slice(2, 12);
+      try { localStorage.setItem("pehli_visitor", id); } catch (e) {}
+    }
+    return id;
+  }
+
+  function loadStats() {
+    fetch("/api/stats").then(function (r) { return r.ok ? r.json() : null; }).then(function (s) {
+      if (!s || typeof s.plans !== "number") return;
+      $("n_plans").textContent = s.plans.toLocaleString("en-IN");
+      $("n_saving").textContent = rupee(s.average_saving || 0);
+      $("live").hidden = false;
+    }).catch(function () {});
+  }
+  loadStats();
+
+  $("planner").addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    var v = read(), btn = $("go"), msg = $("msg"), out = $("plan_out");
+    btn.disabled = true; btn.textContent = "Writing your plan…";
+    msg.className = "msg"; msg.textContent = "";
+    fetch("/api/plan", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ visitor_id: visitorId(), take_home: v.take_home, committed: v.committed, support: v.support, future: v.future, days: v.days, flex: v.flex, note: $("note").value })
+    }).then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+      .then(function (res) {
+        if (!res.ok) throw new Error(res.j.error || "Something went wrong. Please try again.");
+        out.textContent = "";
+        var t = document.createElement("strong"); t.textContent = "Your plan for this month";
+        out.appendChild(t); out.appendChild(document.createTextNode(res.j.plan));
+        out.hidden = false;
+        msg.textContent = "Plans left today: " + res.j.remaining + ". Written by AI from your own figures; not financial advice.";
+        loadStats();
+      })
+      .catch(function (e) {
+        msg.className = "msg err";
+        msg.textContent = (e && e.message && e.message.indexOf("Unexpected") === -1 && e.message.indexOf("Failed to fetch") === -1)
+          ? e.message : "The plan could not be written just now. Please try again in a minute.";
+      })
+      .then(function () { btn.disabled = false; btn.textContent = "Make my Payday Plan"; });
+  });
+})();
+</script>
+</body>
+</html>
